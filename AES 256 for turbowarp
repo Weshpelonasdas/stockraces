@@ -1,0 +1,95 @@
+(function (Scratch) {
+    "use strict";
+
+    if (!Scratch.extensions.unsandboxed) {
+        throw new Error("Cette extension doit être chargée en mode non sandboxé.");
+    }
+
+    class AES256 {
+
+        getInfo() {
+            return {
+                id: "aes256",
+                name: "AES 256 Crypto",
+                color1: "#2e86de",
+                blocks: [
+                    {
+                        opcode: "encrypt",
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: "chiffrer [TEXT] avec motdepasse [PASS]"
+                    },
+                    {
+                        opcode: "decrypt",
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: "décrypter [TEXT] avec motdepasse [PASS]"
+                    }
+                ]
+            };
+        }
+
+        async deriveKey(password) {
+            const enc = new TextEncoder();
+            const keyMaterial = await crypto.subtle.importKey(
+                "raw",
+                enc.encode(password),
+                { name: "PBKDF2" },
+                false,
+                ["deriveKey"]
+            );
+
+            return crypto.subtle.deriveKey(
+                {
+                    name: "PBKDF2",
+                    salt: enc.encode("turbowarp-salt"),
+                    iterations: 100000,
+                    hash: "SHA-256"
+                },
+                keyMaterial,
+                { name: "AES-GCM", length: 256 },
+                false,
+                ["encrypt", "decrypt"]
+            );
+        }
+
+        async encrypt(args) {
+            const enc = new TextEncoder();
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const key = await this.deriveKey(args.PASS);
+
+            const encrypted = await crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv },
+                key,
+                enc.encode(args.TEXT)
+            );
+
+            const buffer = new Uint8Array(iv.length + encrypted.byteLength);
+            buffer.set(iv, 0);
+            buffer.set(new Uint8Array(encrypted), iv.length);
+
+            return btoa(String.fromCharCode(...buffer));
+        }
+
+        async decrypt(args) {
+            try {
+                const data = Uint8Array.from(atob(args.TEXT), c => c.charCodeAt(0));
+                const iv = data.slice(0, 12);
+                const encrypted = data.slice(12);
+
+                const key = await this.deriveKey(args.PASS);
+
+                const decrypted = await crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv: iv },
+                    key,
+                    encrypted
+                );
+
+                return new TextDecoder().decode(decrypted);
+            } catch (e) {
+                return "Erreur";
+            }
+        }
+    }
+
+    Scratch.extensions.register(new AES256());
+
+})(Scratch);
