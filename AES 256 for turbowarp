@@ -1,39 +1,61 @@
-getInfo() {
-    return {
-        id: "aes256",
-        name: "AES 256 Crypto",
-        color1: "#2e86de",
-        blocks: [
-            {
-                opcode: "encrypt",
-                blockType: Scratch.BlockType.REPORTER,
-                text: "chiffrer [TEXT] avec motdepasse [PASS]",
-                arguments: {
-                    TEXT: {
-                        type: Scratch.ArgumentType.STRING,
-                        defaultValue: "bonjour"
-                    },
-                    PASS: {
-                        type: Scratch.ArgumentType.STRING,
-                        defaultValue: "1234"
-                    }
-                }
-            },
-            {
-                opcode: "decrypt",
-                blockType: Scratch.BlockType.REPORTER,
-                text: "décrypter [TEXT] avec motdepasse [PASS]",
-                arguments: {
-                    TEXT: {
-                        type: Scratch.ArgumentType.STRING,
-                        defaultValue: ""
-                    },
-                    PASS: {
-                        type: Scratch.ArgumentType.STRING,
-                        defaultValue: "1234"
-                    }
-                }
-            }
-        ]
-    };
+(function(Scratch) {
+"use strict";
+
+if (!Scratch.extensions.unsandboxed) {
+    throw new Error("Charge en mode Unsandboxed !");
 }
+
+class AES256 {
+
+    getInfo() {
+        return {
+            id: "aes256",
+            name: "AES 256 Crypto",
+            color1: "#2e86de",
+            blocks: [
+                {
+                    opcode: "encrypt",
+                    blockType: Scratch.BlockType.REPORTER,
+                    text: "chiffrer [TEXT] avec motdepasse [PASS]",
+                    arguments: {
+                        TEXT: {
+                            type: Scratch.ArgumentType.STRING,
+                            defaultValue: "bonjour"
+                        },
+                        PASS: {
+                            type: Scratch.ArgumentType.STRING,
+                            defaultValue: "1234"
+                        }
+                    }
+                },
+                {
+                    opcode: "decrypt",
+                    blockType: Scratch.BlockType.REPORTER,
+                    text: "décrypter [TEXT] avec motdepasse [PASS]",
+                    arguments: {
+                        TEXT: {
+                            type: Scratch.ArgumentType.STRING,
+                            defaultValue: "colle le texte chiffré ici"
+                        },
+                        PASS: {
+                            type: Scratch.ArgumentType.STRING,
+                            defaultValue: "1234"
+                        }
+                    }
+                }
+            ]
+        };
+    }
+
+    async encrypt(args) {
+        return "test";
+    }
+
+    async decrypt(args) {
+        return "test";
+    }
+}
+
+Scratch.extensions.register(new AES256());
+
+})(Scratch);
